@@ -29,18 +29,14 @@ pnpm install
 pnpm build
 
 # Test locally
-pnpm dev add vercel-labs/agent-skills --list
-pnpm dev experimental_sync
 pnpm dev check
 pnpm dev update
-pnpm dev init my-skill
 
 # Run all tests
 pnpm test
 
 # Run specific test file(s)
-pnpm test tests/sanitize-name.test.ts
-pnpm test tests/skill-matching.test.ts tests/source-parser.test.ts
+pnpm test tests/file-name.test.ts
 
 # Type check
 pnpm type-check
