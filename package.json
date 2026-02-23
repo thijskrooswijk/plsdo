@@ -1,6 +1,6 @@
 {
   "name": "plsdo",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Please do",
   "keywords": [
     "pls",
@@ -20,8 +20,27 @@
   "license": "MIT",
   "author": "Thijs Krooswijk",
   "type": "module",
-  "main": "cli.mjs",
+  "bin": {
+    "plsdo": "./bin/cli.mjs"
+  },
+  "main": "src/cli.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  }
+    "build": "obuild",
+    "dev": "node src/cli.ts",
+    "format": "prettier --write 'src/**/*.ts'",
+    "prepublishOnly": "npm run build",
+    "test": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "obuild": "^0.4.31",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@10.30.1"
 }
