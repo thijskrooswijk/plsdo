@@ -1,0 +1,27 @@
+{
+  "name": "plsdo",
+  "version": "0.0.0",
+  "description": "Please do",
+  "keywords": [
+    "pls",
+    "do",
+    "exec",
+    "cmd",
+    "fs"
+  ],
+  "homepage": "https://github.com/thijskrooswijk/plsdo#readme",
+  "bugs": {
+    "url": "https://github.com/thijskrooswijk/plsdo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thijskrooswijk/plsdo.git"
+  },
+  "license": "MIT",
+  "author": "Thijs Krooswijk",
+  "type": "module",
+  "main": "cli.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
