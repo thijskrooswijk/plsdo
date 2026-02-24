@@ -3,6 +3,7 @@
 import { join, dirname } from 'path';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { runCopy, parseCopyOptions } from './copy.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -50,6 +51,13 @@ function showHelp() {
   console.log(`
 ${BOLD}Usage:${RESET} plsdo <command> [options]
 
+${BOLD}Manage files:${RESET}
+  copy <source> <destination>       Copy a file
+  remove <path>                     Remove a file
+
+${BOLD}Add Options:${RESET}
+  -g, --global           Copy file globally (user-level) instead of directory-level
+
 ${BOLD}Options:${RESET}
   --help, -h        Show this help message
   --version, -v     Show version number
@@ -60,12 +68,16 @@ async function main() {
   const args = process.argv.slice(2);
 
   const command = args[0];
-  const restArgs = args.slice(1);
+  let restArgs = args.slice(1);
+
+  console.log(restArgs);
 
   switch (command) {
     case 'cp':
     case 'copy':
       showLogo();
+      const { source, options } = parseCopyOptions(restArgs);
+      await runCopy(source, options);
       break;
     case '--help':
     case '-h':
