@@ -16,7 +16,10 @@ This file provides guidance to AI coding agents working on the `plsdo` CLI codeb
 
 ```
 src/
-├── cli.ts           # Main entry point, command routing, init/check/update
+├── cli.ts              # Main entry point, command routing, init
+├── copy.ts             # Copy command logic
+├── source-parser.ts    # Parsing the source, like url or local path
+├── types.ts            # Contains all Typescript types and interfaces
 ```
 
 ## Development
