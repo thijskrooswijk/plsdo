@@ -33,8 +33,11 @@
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
+    "@clack/prompts": "^1.0.1",
     "@types/node": "^25.3.0",
+    "front-matter": "^4.0.2",
     "obuild": "^0.4.31",
+    "picocolors": "^1.1.1",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
