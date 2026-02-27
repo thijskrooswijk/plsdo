@@ -1,5 +1,5 @@
-import { isAbsolute, resolve } from 'path';
-import type { ParsedSource } from './types.ts';
+import { isAbsolute, resolve } from 'node:path';
+import { type ParsedSource } from './types.ts';
 
 const SOURCE_ALIASES: Record<string, string> = {};
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { join, dirname } from 'path';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runCopy, parseCopyOptions } from './copy.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

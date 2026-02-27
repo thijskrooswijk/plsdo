@@ -1,12 +1,10 @@
 import * as p from '@clack/prompts';
-import pc from 'picocolors';
-import fs from 'fs';
 import fm from 'front-matter';
-import { normalize, resolve, sep } from 'path';
-import { rm, mkdir, writeFile } from 'fs/promises';
-import { tmpdir } from 'os';
+import pc from 'picocolors';
+import { resolve } from 'node:path';
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { parseSource } from './source-parser.ts';
-import type { CopyOptions } from './types.ts';
+import { type CopyOptions } from './types.ts';
 
 export async function runCopy(args: string[], options: CopyOptions = {}): Promise<void> {
   const source = args[0];
@@ -57,18 +55,6 @@ export async function runCopy(args: string[], options: CopyOptions = {}): Promis
     p.outro(pc.red('Installation failed'));
     process.exit(1);
   }
-}
-
-export async function cleanupTempDir(dir: string): Promise<void> {
-  // Validate that the directory path is within tmpdir to prevent deletion of arbitrary paths
-  const normalizedDir = normalize(resolve(dir));
-  const normalizedTmpDir = normalize(resolve(tmpdir()));
-
-  if (!normalizedDir.startsWith(normalizedTmpDir + sep) && normalizedDir !== normalizedTmpDir) {
-    throw new Error('Attempted to clean up directory outside of temp directory');
-  }
-
-  await rm(dir, { recursive: true, force: true });
 }
 
 // Parse command line options from args array
@@ -122,7 +108,9 @@ async function handleUrl(url: string, options: CopyOptions, spinner: any) {
   const destinationPath = await copyFileFromUrl(url, destination);
   p.log.info(`File downloaded to: ${destinationPath}`);
 
-  const fileContent = fs.readFileSync(destinationPath, 'utf8');
+  const fileContent = existsSync(destinationPath)
+    ? readFileSync(destinationPath, { encoding: 'utf8' })
+    : '';
   const { attributes } = fm<{ name?: string; description?: string }>(fileContent);
 
   const remoteFile = {
@@ -153,14 +141,14 @@ export async function copyFileFromUrl(url: string, path: string): Promise<string
       throw new Error(`Failed to download file: ${response.statusText}`);
     }
 
-    await mkdir(path, { recursive: true });
+    mkdirSync(path, { recursive: true });
 
     const pathname = new URL(url).pathname;
     const filename = pathname.split('/').pop() || 'file';
     const destinationPath = resolve(path, filename);
 
     const buffer = await response.arrayBuffer();
-    await writeFile(destinationPath, Buffer.from(buffer));
+    writeFileSync(destinationPath, Buffer.from(buffer));
 
     spinner.stop(`File location: ${pc.green(destinationPath)}`);
 
