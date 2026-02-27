@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@clack/prompts": "^1.0.1",
-    "@types/node": "^25.3.0",
+    "@types/node": "^25.3.2",
     "front-matter": "^4.0.2",
     "obuild": "^0.4.31",
     "picocolors": "^1.1.1",
