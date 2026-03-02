@@ -23,7 +23,6 @@
   "bin": {
     "plsdo": "./bin/cli.mjs"
   },
-  "main": "src/cli.ts",
   "scripts": {
     "build": "obuild",
     "dev": "node src/cli.ts",
