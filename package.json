@@ -9,6 +9,12 @@
     "cmd",
     "fs"
   ],
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "ThirdPartyNoticeText.txt"
+  ],
   "homepage": "https://github.com/thijskrooswijk/plsdo#readme",
   "bugs": {
     "url": "https://github.com/thijskrooswijk/plsdo/issues"
