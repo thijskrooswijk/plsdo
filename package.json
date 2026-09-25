@@ -13,7 +13,7 @@
     "dist",
     "bin",
     "README.md",
-    "ThirdPartyNoticeText.txt"
+    "THIRD-PARTY-LICENSES.md"
   ],
   "homepage": "https://github.com/thijskrooswijk/plsdo#readme",
   "bugs": {
@@ -44,11 +44,11 @@
     "obuild": "^0.4.40",
     "picocolors": "^1.1.1",
     "prettier": "^3.9.9",
-    "typescript": "^7.0.2",
+    "typescript": "6.0.3",
     "vitest": "^5.0.2"
   },
   "engines": {
-    "node": ">=24"
+    "node": ">=26"
   },
   "packageManager": "pnpm@10.30.1"
 }
