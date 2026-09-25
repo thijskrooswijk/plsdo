@@ -38,14 +38,14 @@
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@clack/prompts": "^1.0.1",
-    "@types/node": "^25.3.2",
+    "@clack/prompts": "^1.8.1",
+    "@types/node": "^26.6.2",
     "front-matter": "^4.0.2",
-    "obuild": "^0.4.31",
+    "obuild": "^0.4.40",
     "picocolors": "^1.1.1",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
   },
   "engines": {
     "node": ">=24"
