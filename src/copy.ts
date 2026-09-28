@@ -1,160 +1,175 @@
 import * as p from '@clack/prompts';
-import fm from 'front-matter';
 import pc from 'picocolors';
-import { resolve } from 'node:path';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { z } from 'zod';
 import { parseSource } from './source-parser.ts';
-import { type CopyOptions } from './types.ts';
 
-export async function runCopy(args: string[], options: CopyOptions = {}): Promise<void> {
-  const source = args[0];
+const configSchema = z.object({
+  config: z
+    .array(
+      z.object({
+        source: z.string().trim().min(1),
+        destination: z.string().trim().min(1),
+        path: z.string().trim().min(1),
+        copy: z.array(z.string().trim().min(1)).min(1),
+      })
+    )
+    .min(1),
+});
 
-  if (!source) {
-    console.log();
-    console.log(
-      pc.bgRed(pc.white(pc.bold(' ERROR '))) + ' ' + pc.red('Missing required argument: source')
-    );
-    console.log();
-    console.log(pc.dim('  Usage:'));
-    console.log(`    ${pc.cyan('npx plsdo cp')} ${pc.yellow('<source>')} ${pc.dim('[options]')}`);
-    console.log();
-    console.log(pc.dim('  Example:'));
-    console.log(
-      `    ${pc.cyan('npx plsdo cp')} ${pc.yellow('https://example.com/skill.md')} ${pc.dim('--skill')}`
-    );
-    console.log();
-    process.exit(1);
+export async function runCopy(): Promise<void> {
+  const configPath = resolve(process.cwd(), 'plsdo.json');
+  let configFile: z.infer<typeof configSchema>;
+
+  try {
+    configFile = configSchema.parse(JSON.parse(readFileSync(configPath, 'utf8')));
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+      console.log();
+      console.log(
+        pc.bgRed(pc.white(pc.bold(' ERROR '))) + ' ' + pc.red(`Config file 'plsdo.json' not found`)
+      );
+      console.log();
+      process.exit(1);
+    }
+    if (error instanceof z.ZodError) {
+      const property = error.issues[0]?.path.at(-1) ?? 'config';
+      console.log();
+      console.log(
+        pc.bgRed(pc.white(pc.bold(' ERROR '))) + ' ' + pc.red(`Missing required property: ${String(property)}`)
+      );
+      console.log();
+      process.exit(1);
+    }
+    throw error;
   }
+
+  const { config } = configFile;
 
   console.log();
   p.intro(pc.bgGreen(pc.black(' copy ')));
 
-  let tempDir: string | null = null;
+  for (const c of config) {
+    const { source, destination, path, copy } = c;
 
-  try {
-    const spinner = p.spinner();
+    try {
+      const spinner = p.spinner();
+      spinner.start('Parsing source...');
 
-    spinner.start('Parsing source...');
-    const parsed = parseSource(source);
+      const parsed = parseSource(source);
 
-    spinner.stop(`Source: ${parsed.type === 'local' ? parsed.localPath! : parsed.url}`);
+      spinner.stop(`Source: ${pc.dim(parsed.type === 'local' ? parsed.localPath! : parsed.source)}`);
 
-    if (parsed.type === 'url') {
-      await handleUrl(parsed.url, options, spinner);
-      return;
-    }
-
-    if (parsed.type === 'unknown') {
-      p.log.error(
-        `Unrecognized source type for "${source}". Please provide a valid local path or URL.`
-      );
-      return;
-    }
-  } catch (error) {
-    p.log.error(error instanceof Error ? error.message : 'Unknown error occurred');
-    p.outro(pc.red('Installation failed'));
-    process.exit(1);
-  }
-}
-
-// Parse command line options from args array
-export function parseCopyOptions(args: string[]): { source: string[]; options: CopyOptions } {
-  const options: CopyOptions = {};
-  const source: string[] = [];
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (arg === '-d' || arg === '--destination') {
-      options.destination = options.destination || './.claude/skills/';
-      i++;
-      let nextArg = args[i];
-      while (i < args.length && nextArg && !nextArg.startsWith('-')) {
-        options.destination = nextArg;
-        i++;
-        nextArg = args[i];
+      if (parsed.type === 'git') {
+        await handleGit(parsed.source, destination, copy, path, spinner);
+        continue;
       }
-      i--;
-    } else if (arg === '-f' || arg === '--files') {
-      options.files = options.files || [];
-      i++;
-      let nextArg = args[i];
-      while (i < args.length && nextArg && !nextArg.startsWith('-')) {
-        options.files.push(nextArg);
-        i++;
-        nextArg = args[i];
+
+      if (parsed.type === 'unknown') {
+        p.log.error(
+          `Unrecognized source type for "${source}". Please provide a valid local path or URL.`
+        );
       }
-      i--; // Back up one since the loop will increment
-    } else if (arg && !arg.startsWith('-')) {
-      source.push(arg);
+    } catch (error) {
+      p.log.error(error instanceof Error ? error.message : 'Unknown error occurred');
+      p.outro(pc.red('Installation failed'));
+      process.exit(1);
     }
   }
-
-  return { source, options };
-}
-
-async function handleUrl(url: string, options: CopyOptions, spinner: any) {
-  spinner.start(`Fetching file from ${url}...`);
-
-  const { destination } = options;
-  if (!destination) {
-    spinner.stop(
-      pc.red(`Operation is missing ${pc.gray('--destination')} or ${pc.gray('-d')} flag`)
-    );
-    p.outro(pc.red('Cancelling fetch operation'));
-    process.exit(1);
-  }
-
-  const destinationPath = await copyFileFromUrl(url, destination);
-  p.log.info(`File downloaded to: ${destinationPath}`);
-
-  const fileContent = existsSync(destinationPath)
-    ? readFileSync(destinationPath, { encoding: 'utf8' })
-    : '';
-  const { attributes } = fm<{ name?: string; description?: string }>(fileContent);
-
-  const remoteFile = {
-    name: attributes?.name || 'No name provided',
-    description: attributes?.description || 'No description provided',
-    sourceIdentifier: url,
-  };
-
-  spinner.stop(`Found file`);
-
-  // p.log.info(`Name: ${pc.cyan(remoteFile.name)}`);
-  p.log.step(pc.bold('File Details'));
-  p.log.message(`  ${pc.cyan('Name:')} ${remoteFile.name}`);
-  p.log.message(`  ${pc.cyan('Description:')} ${remoteFile.description}`);
 
   p.outro(
-    pc.green('Done!') + pc.dim('  Review file before use; they run with full agent permissions.')
+    pc.green('Done!') + pc.dim('  Review copied files before use; they run with full agent permissions.')
   );
 }
 
-export async function copyFileFromUrl(url: string, path: string): Promise<string> {
-  const spinner = p.spinner();
-  spinner.start(`Downloading file...`);
+async function handleGit(
+  source: string,
+  destination: string,
+  directories: string[],
+  path: string,
+  spinner: any
+) {
+  const paths = await copyDirectoriesFromGit(source, destination, directories, path, spinner);
+
+  p.log.step(`Summary:`);
+  const copied = paths.map((path, idx) => `${pc.green('✓')} ${directories[idx]} ${pc.dim('->')} ${path} ${pc.dim('(copied)')}`);
+  p.log.message(copied.join('\n'));
+  p.log.success(pc.green(`Successfully copied ${directories.length} directories\n\n`));
+}
+
+export async function copyDirectoriesFromGit(
+  source: string,
+  destination: string,
+  dirs: string[],
+  path: string,
+  spinner: any
+) {
+  p.log.step(`Selected directories to copy:`);
+  const selected = dirs.map((dir) => pc.dim(`- ${dir}`)).join('\n');
+  p.log.message(selected);
+
+  spinner.start('Cloning repository...');
+  const tmpDir = mkdtempSync(join(tmpdir(), 'plsdo-'));
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to download file: ${response.statusText}`);
+    if (!destination) {
+      throw new Error('A destination is required to copy directories from a Git repository.');
+    }
+    if (!Array.isArray(dirs) || dirs.length === 0) {
+      throw new Error('No directories were specified to copy from the Git repository.');
     }
 
-    mkdirSync(path, { recursive: true });
+    execFileSync('git', ['clone', source, tmpDir], { stdio: 'ignore' });
+    mkdirSync(resolve(destination), { recursive: true });
 
-    const pathname = new URL(url).pathname;
-    const filename = pathname.split('/').pop() || 'file';
-    const destinationPath = resolve(path, filename);
+    const paths: string[] = [];
+    for (const dir of dirs) {
+      if (isAbsolute(dir) || !dir || dir === '.' || dir === '..') {
+        throw new Error(`Expected a relative folder path: ${dir}`);
+      }
 
-    const buffer = await response.arrayBuffer();
-    writeFileSync(destinationPath, Buffer.from(buffer));
+      const recursive = dir.includes('/*');
+      const directory = dir.replace(/\/\*$/, ''); // Remove trailing /* if present
 
-    spinner.stop(`File location: ${pc.green(destinationPath)}`);
+      const sourcePath = resolve(tmpDir, path, directory);
+      const relativeSourcePath = relative(tmpDir, sourcePath);
+      if (
+        relativeSourcePath === '..' ||
+        relativeSourcePath.startsWith(`..${sep}`) ||
+        isAbsolute(relativeSourcePath)
+      ) {
+        throw new Error(`Source path must stay within the repository: ${join(path, directory)}`);
+      }
+      if (!existsSync(sourcePath)) {
+        throw new Error(`Directory "${join(path, directory)}" was not found in the cloned repository.`);
+      }
+      if (!statSync(sourcePath).isDirectory()) {
+        throw new Error(`Path is not a directory in the repository: ${join(path, directory)}`);
+      }
 
-    return destinationPath;
+      const dest = recursive ? resolve(destination) : resolve(destination, directory);
+      cpSync(sourcePath, dest, { recursive: true });
+      paths.push(dest);
+    }
+
+    spinner.stop(`Destination: ${pc.dim(destination)}`);
+    return paths;
   } catch (error) {
-    spinner.stop(pc.red('Failed to download file'));
+    spinner.stop(pc.red('Failed to copy directories from Git repository'));
     throw error;
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+    p.log.info(pc.dim(`Tmp directory deleted: ${tmpDir}`));
   }
 }

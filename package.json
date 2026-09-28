@@ -7,13 +7,19 @@
     "do",
     "exec",
     "cmd",
-    "fs"
+    "fs",
+    "skills",
+    "agents",
+    "plugins",
+    "copy",
+    "cp",
+    "cli"
   ],
   "files": [
     "dist",
     "bin",
     "README.md",
-    "THIRD-PARTY-LICENSES.md"
+    "plsdo.example.json"
   ],
   "homepage": "https://github.com/thijskrooswijk/plsdo#readme",
   "bugs": {
@@ -37,9 +43,12 @@
     "test": "vitest",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
   "devDependencies": {
     "@clack/prompts": "^1.8.1",
-    "@types/node": "^26.6.2",
+    "@types/node": "^26.6.3",
     "front-matter": "^4.0.2",
     "obuild": "^0.4.40",
     "picocolors": "^1.1.1",
@@ -49,6 +58,5 @@
   },
   "engines": {
     "node": ">=26"
-  },
-  "packageManager": "pnpm@10.30.1"
+  }
 }

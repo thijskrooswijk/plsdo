@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "config": [
+    {
+      "source": "https://github.com/cursor/plugins.git",
+      "path": "./pstack/skills",
+      "destination": ".agents/skills",
+      "copy": ["architect"]
+    },
+    {
+      "source": "https://github.com/mattpocock/skills.git",
+      "path": "./skills",
+      "destination": ".agents/skills",
+      "copy": ["engineering/*", "in-progress/*", "misc/*", "productivity/*"]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "config": [
+    {
+      "source": "git@github.com:owner/repository.git",
+      "path": "./directory/agents",
+      "destination": ".agents/agents",
+      "copy": ["architect"]
+    },
+    {
+      "source": "https://github.com/owner/repository.git",
+      "path": "./skills",
+      "destination": ".agents/skills",
+      "copy": ["engineering/*", "in-progress/*", "misc/*", "productivity/*"]
+    }
+  ]
+}

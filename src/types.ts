@@ -4,7 +4,7 @@ export interface CopyOptions {
 }
 
 export interface ParsedSource {
-  type: 'local' | 'url' | 'unknown';
-  url: string;
+  type: 'local' | 'git' | 'url' | 'unknown';
+  source: string;
   localPath?: string;
 }

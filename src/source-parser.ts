@@ -16,22 +16,29 @@ export function parseSource(input: string): ParsedSource {
     // Return local type even if path doesn't exist - we'll handle validation in main flow
     return {
       type: 'local',
-      url: resolvedPath, // Store resolved path in url for consistency
+      source: resolvedPath, // Store resolved path in source for consistency
       localPath: resolvedPath,
+    };
+  }
+  // Git repository
+  if (isRepo(input)) {
+    return {
+      type: 'git',
+      source: input,
     };
   }
   // Direct URL (e.g. http://, https://)
   if (isUrl(input)) {
     return {
       type: 'url',
-      url: input,
+      source: input,
     };
   }
 
   // Unkwown type
   return {
     type: 'unknown',
-    url: input,
+    source: input,
   };
 }
 
@@ -48,26 +55,9 @@ function isLocalPath(input: string): boolean {
 }
 
 function isUrl(input: string): boolean {
-  if (!input.startsWith('http://') && !input.startsWith('https://')) {
-    return false;
-  }
+  return input.startsWith('http://') || input.startsWith('https://')
+}
 
-  // Must end with skill.md (case insensitive)
-  if (!input.toLowerCase().endsWith('/skill.md')) {
-    return false;
-  }
-  // Exclude GitHub and GitLab repository URLs - they have their own handling
-  // (but allow raw.githubusercontent.com if someone wants to use it directly)
-  if (input.includes('github.com/') && !input.includes('raw.githubusercontent.com')) {
-    // Check if it's a blob/raw URL to SKILL.md (these should be handled by providers)
-    // vs a tree/repo URL (these should be cloned)
-    if (!input.includes('/blob/') && !input.includes('/raw/')) {
-      return false;
-    }
-  }
-  if (input.includes('gitlab.com/') && !input.includes('/-/raw/')) {
-    return false;
-  }
-
-  return true;
+function isRepo(input: string): boolean {
+  return input.startsWith('git@') || input.startsWith('ssh://') || input.endsWith('.git');
 }

@@ -17,9 +17,9 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+    "types": ["node"],
   },
-  "types": ["node"],
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
