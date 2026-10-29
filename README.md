@@ -6,11 +6,21 @@ It reads a `plsdo.json` file, clones the configured source repository to a tempo
 
 ## Install
 
+To use the latest CLI and schema, install with `@latest` and set `$schema` in `plsdo.json` to `./node_modules/plsdo/schemas/latest/schema.json`:
+
 ```bash
-npm install -D plsdo
-# or
-npx plsdo --help
+npm install -D -E plsdo@latest
+npx plsdo@latest cp
 ```
+
+Pinning a specific `plsdo` version is recommended for reproducible installs and to keep the CLI and schema in sync. Set `$schema` to the matching version's schema, for example `./node_modules/plsdo/schemas/0.0.1/schema.json`, and run that CLI version:
+
+```bash
+npm install -D -E plsdo@0.0.1
+npx plsdo@0.0.1 cp
+```
+
+The `latest` schema path tracks the latest published schema; versioned schema paths remain tied to their specific release.
 
 ## Commands
 
@@ -29,6 +39,8 @@ Create a `plsdo.json` file in the project where you want the files copied:
 
 ```json
 {
+  "$schema": "./node_modules/plsdo/schemas/latest/schema.json",
+  "version": 1,
   "config": [
     {
       "source": "git@github.com:owner/repository.git",
@@ -70,6 +82,8 @@ The `copy` array expects relative folder paths:
 
 ```json
 {
+  "$schema": "./node_modules/plsdo/schemas/latest/schema.json",
+  "version": 1,
   "config": [
     {
       "source": "git@github.com:owner/repository.git",
@@ -91,6 +105,8 @@ Notes:
 
 ```json
 {
+  "$schema": "./node_modules/plsdo/schemas/latest/schema.json",
+  "version": 1,
   "config": [
     {
       "source": "https://github.com/acme/platform.git",
