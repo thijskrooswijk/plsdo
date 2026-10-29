@@ -18,6 +18,7 @@
   "files": [
     "dist",
     "bin",
+    "schemas",
     "README.md",
     "plsdo.example.json"
   ],

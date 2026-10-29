@@ -1,4 +1,5 @@
 {
+  "$schema": "schemas/latest/schema.json",
   "version": 1,
   "config": [
     {
